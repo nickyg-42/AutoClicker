@@ -1,0 +1,4 @@
+#ifndef AUTOCLICKER_H
+#define AUTOCLICKER_H
+
+#endif // AUTOCLICKER_H
