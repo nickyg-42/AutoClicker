@@ -5,9 +5,11 @@
 #include <cstdlib>
 #include <thread>
 #include <atomic>
+#include <conio.h>
 #include "AutoClicker.h"
 
 std::atomic<bool> running(true);
+std::atomic<bool> quit(false);
 
 void clear() {
     std::cout << "\033[2J\033[1;1H";
@@ -93,12 +95,18 @@ void changeInterval(AutoClicker* ac, HANDLE console) {
     return;
 }
 
-void quitListen(AutoClicker* ac) {
+void quitListen(AutoClicker* ac, int vKey) {
     while(running) {
-        if (GetAsyncKeyState(0x51) & 0x8000) {
-            ac->stop();
-            clear();
+        if (GetAsyncKeyState(vKey) & 0x8000) {
+            while (GetAsyncKeyState(vKey) & 0x8000) {};
             running = false;
+            return;
+        }
+        else if (GetAsyncKeyState(0x51) & 0x8000) {
+            while (GetAsyncKeyState(0x51) & 0x8000) {};
+            running = false;
+            quit = true;
+            return;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -108,12 +116,13 @@ void quitListen(AutoClicker* ac) {
 }
 
 void start(AutoClicker* ac, HANDLE console) {
+    quit = false;
     clear();
 
-    std::string input;
     short vk = VkKeyScan(ac->getKeybind());
     int vKey = LOBYTE(vk);
 
+    std::cout << "Press q at any time to exit" << std::endl;
     std::cout << "Listening for keypress... (";
     SetConsoleTextAttribute(console, 3);
     std::cout << ac->getKeybind();
@@ -122,17 +131,50 @@ void start(AutoClicker* ac, HANDLE console) {
 
     while(true) {
         if (GetAsyncKeyState(0x51) & 0x8000) {
-            ac->stop();
-            clear();
             break;
         }
         else if (GetAsyncKeyState(vKey) & 0x8000) {
             clear();
-            std::thread listener(quitListen, ac);
-            std::cout << "RUNNING" << std::endl;
-            ac->start();
+
+            running = true;
+
+            while (GetAsyncKeyState(vKey) & 0x8000) {};
+
+            std::thread listener(quitListen, ac, vKey);
+
+            SetConsoleTextAttribute(console, 7);
+            std::cout << "Press q at any time to exit" << std::endl;
+            SetConsoleTextAttribute(console, 2);
+            std::cout << "Running..." << std::endl;
+            SetConsoleTextAttribute(console, 7);
+            std::cout << "Press ";
+            SetConsoleTextAttribute(console, 3);
+            std::cout << ac->getKeybind();
+            SetConsoleTextAttribute(console, 7);
+            std::cout << " at any time to pause" << std::endl;
+
+            while(running) {
+                //ac->click();
+                //std::cout << "clicking every " << ac->getInterval() << " seconds" << std::endl;
+                Sleep(ac->getInterval() * 1000);
+            }
+
             listener.join();
-            break;
+            clear();
+
+            if (quit) break;
+
+            SetConsoleTextAttribute(console, 7);
+            std::cout << "Press q at any time to exit" << std::endl;
+            SetConsoleTextAttribute(console, 6);
+            std::cout << "Paused" << std::endl;
+            SetConsoleTextAttribute(console, 7);
+            std::cout << "Listening for keypress... (";
+            SetConsoleTextAttribute(console, 3);
+            std::cout << ac->getKeybind();
+            SetConsoleTextAttribute(console, 7);
+            std::cout << ")" << std::endl;
+            continue;
         }
     }
 
@@ -157,6 +199,8 @@ int main()
     while(choice != 4) {
         printOptions(console);
 
+        FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+
         std::cin >> choice;
 
         switch(choice) {
@@ -179,6 +223,7 @@ int main()
         }
     }
 
+    FreeConsole();
     delete ac;
     return 0;
 }

@@ -7,14 +7,11 @@ class AutoClicker {
     private:
         char keybind;
         double interval;
-        bool keepGoing;
 
     public:
         AutoClicker(char keybind, double interval);
 
-        void start();
-
-        void stop();
+        void click();
 
         void setKeybind(char keybind);
 

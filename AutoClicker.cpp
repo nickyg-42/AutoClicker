@@ -7,19 +7,11 @@ AutoClicker::AutoClicker(char keybind = 'k', double interval = 0.5) {
     this->interval = interval;
 }
 
-void AutoClicker::start() {
-    setKeepGoing(true);
+void AutoClicker::click() {
     POINT mousePos;
 
-    while(getKeepGoing()) {
-        GetCursorPos(&mousePos);
-        mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, mousePos.x, mousePos.y, 0, 0);
-        Sleep(getInterval() * 1000);
-    }
-}
-
-void AutoClicker::stop() {
-    setKeepGoing(false);
+    GetCursorPos(&mousePos);
+    mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, mousePos.x, mousePos.y, 0, 0);
 }
 
 void AutoClicker::setKeybind(char keybind) {
@@ -38,12 +30,4 @@ char AutoClicker::getKeybind() {
 
 double AutoClicker::getInterval() {
     return interval;
-}
-
-void AutoClicker::setKeepGoing(bool keepGoing) {
-    this->keepGoing = keepGoing;
-}
-
-bool AutoClicker::getKeepGoing() {
-    return keepGoing;
 }
