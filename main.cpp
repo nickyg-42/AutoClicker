@@ -6,6 +6,7 @@
 #include <thread>
 #include <atomic>
 #include <conio.h>
+#include <ctype.h>
 #include "AutoClicker.h"
 
 std::atomic<bool> running(true);
@@ -49,6 +50,7 @@ void printOptions(HANDLE console) {
 
 void changeKeybind(AutoClicker* ac, HANDLE console) {
     clear();
+    std::string input;
     char newKeybind;
 
     std::cout << "Current keybind: ";
@@ -59,9 +61,20 @@ void changeKeybind(AutoClicker* ac, HANDLE console) {
     SetConsoleTextAttribute(console, 11);
     std::cout << "> ";
     SetConsoleTextAttribute(console, 7);
+    
+    std::cin.get();
 
-    std::cin >> newKeybind;
-    // VALIDATE
+    while (true) {
+        std::getline(std::cin, input);
+        
+        if (input.length() == 1 && isalpha(input[0])) {
+            break;
+        }
+        
+        std::cout << "Invalid input. Please enter a letter a-z > ";
+    }
+
+    newKeybind = input[0];
 
     if (newKeybind != 'q' && newKeybind != 'Q') {
         ac->setKeybind(newKeybind);
@@ -73,23 +86,38 @@ void changeKeybind(AutoClicker* ac, HANDLE console) {
 
 void changeInterval(AutoClicker* ac, HANDLE console) {
     clear();
+    std::string input;
     double newInterval;
 
     std::cout << "Current interval: ";
     SetConsoleTextAttribute(console, 3);
     std::cout << ac->getInterval() << std::endl;
     SetConsoleTextAttribute(console, 7);
-    std::cout << "Enter your new interval (or -1 to cancel)" << std::endl;
+    std::cout << "Enter your new interval (or q to cancel)" << std::endl;
     SetConsoleTextAttribute(console, 11);
     std::cout << "> ";
     SetConsoleTextAttribute(console, 7);
 
-    std::cin >> newInterval;
-    // VALIDATE
+    std::cin.get();
 
-    if (newInterval != -1) {
-        ac->setInterval(newInterval);
+    while (true) {
+        std::getline(std::cin, input);
+
+        if (input[0] == 'q') {
+            clear();
+            return;
+        }
+
+        try {
+            newInterval = std::stod(input);
+            if (newInterval < 0.0) throw std::invalid_argument("");
+            else break;
+        } catch (const std::invalid_argument&) {
+            std::cout << "Invalid input. Please enter a positive double > ";
+        }
     }
+
+    ac->setInterval(newInterval);
 
     clear();
     return;
@@ -154,8 +182,7 @@ void start(AutoClicker* ac, HANDLE console) {
             std::cout << " at any time to pause" << std::endl;
 
             while(running) {
-                //ac->click();
-                //std::cout << "clicking every " << ac->getInterval() << " seconds" << std::endl;
+                ac->click();
                 Sleep(ac->getInterval() * 1000);
             }
 
@@ -183,7 +210,27 @@ void start(AutoClicker* ac, HANDLE console) {
 }
 
 void reset(AutoClicker* ac, HANDLE console) {
-    //todo
+    while (GetAsyncKeyState(VK_RETURN) & 0x8000) {};
+    clear();
+
+    ac->setInterval(.5);
+    ac->setKeybind('k');
+
+    SetConsoleTextAttribute(console, 2);
+    std::cout << "Settings reset to default" << std::endl;
+    SetConsoleTextAttribute(console, 7);
+    std::cout << "Press enter to continue..." << std::endl;
+
+    while(true) {
+        if (GetAsyncKeyState(VK_RETURN) & 0x8000) {
+            while (GetAsyncKeyState(VK_RETURN) & 0x8000) {};
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    clear();
     return;
 }
 
@@ -201,7 +248,12 @@ int main()
 
         FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
 
-        std::cin >> choice;
+        // validate
+        while (!(std::cin >> choice)) {
+            std::cout << "Invalid input. Please enter an integer > ";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
 
         switch(choice) {
             case 1:
@@ -216,9 +268,10 @@ int main()
             case 4:
                 break;
             case 5:
+                reset(ac, console);
                 break;
             default:
-                std::cout << "Invalid option" << std::endl;
+                std::cout << "Invalid choice. Please enter 1-5. " << std::endl;
                 break;
         }
     }

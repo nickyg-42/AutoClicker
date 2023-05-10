@@ -1,5 +1,6 @@
 #include <string>
 #include <windows.h>
+#include <ctype.h>
 #include "AutoClicker.h"
 
 AutoClicker::AutoClicker(char keybind = 'k', double interval = 0.5) {
@@ -15,13 +16,17 @@ void AutoClicker::click() {
 }
 
 void AutoClicker::setKeybind(char keybind) {
-    // validation logic
-    this->keybind = keybind;
+    if (isalpha(keybind)) {
+        this->keybind = keybind;
+    }
+    else return;
 }
 
 void AutoClicker::setInterval(double interval) {
-    // validation logic
-    this->interval = interval;
+    if (interval >= 0.0) {
+        this->interval = interval;
+    }
+    else return;
 }
 
 char AutoClicker::getKeybind() {
