@@ -3,7 +3,11 @@
 #include <string>
 #include <windows.h>
 #include <cstdlib>
+#include <thread>
+#include <atomic>
 #include "AutoClicker.h"
+
+std::atomic<bool> running(true);
 
 void clear() {
     std::cout << "\033[2J\033[1;1H";
@@ -89,10 +93,26 @@ void changeInterval(AutoClicker* ac, HANDLE console) {
     return;
 }
 
+void quitListen(AutoClicker* ac) {
+    while(running) {
+        if (GetAsyncKeyState(0x51) & 0x8000) {
+            ac->stop();
+            clear();
+            running = false;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    return;
+}
+
 void start(AutoClicker* ac, HANDLE console) {
     clear();
 
     std::string input;
+    short vk = VkKeyScan(ac->getKeybind());
+    int vKey = LOBYTE(vk);
 
     std::cout << "Listening for keypress... (";
     SetConsoleTextAttribute(console, 3);
@@ -104,12 +124,15 @@ void start(AutoClicker* ac, HANDLE console) {
         if (GetAsyncKeyState(0x51) & 0x8000) {
             ac->stop();
             clear();
-            return;
+            break;
         }
-        else if (GetAsyncKeyState(ac->getKeybind()) & 0x8000) {
+        else if (GetAsyncKeyState(vKey) & 0x8000) {
             clear();
+            std::thread listener(quitListen, ac);
             std::cout << "RUNNING" << std::endl;
             ac->start();
+            listener.join();
+            break;
         }
     }
 
@@ -118,6 +141,7 @@ void start(AutoClicker* ac, HANDLE console) {
 }
 
 void reset(AutoClicker* ac, HANDLE console) {
+    //todo
     return;
 }
 

@@ -10,6 +10,7 @@ AutoClicker::AutoClicker(char keybind = 'k', double interval = 0.5) {
 void AutoClicker::start() {
     setKeepGoing(true);
     POINT mousePos;
+
     while(getKeepGoing()) {
         GetCursorPos(&mousePos);
         mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, mousePos.x, mousePos.y, 0, 0);
