@@ -2,7 +2,7 @@
 Simple console based Windows application that repeatedly clicks at the current mouse location for a specified interval.
 
 # Installation and Use
-Note: This application is exclusive to Windows operating systems.
+Note: This application is exclusive to the Windows operating systems.
 * Download the executable and run it
 
 OR
