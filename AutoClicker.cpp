@@ -1,63 +1,48 @@
 #include <string>
 #include <windows.h>
+#include "AutoClicker.h"
 
-class AutoClicker {
-    private:
-        std::string keybind;
-        double interval;
-        bool keepGoing;
+AutoClicker::AutoClicker(char keybind = 'k', double interval = 0.5) {
+    this->keybind = keybind;
+    this->interval = interval;
+}
 
-    public:
-        AutoClicker(std::string keybind = "k", double interval = 0.5) {
-            this->keybind = keybind;
-            this->interval = interval;
-        }
+void AutoClicker::start() {
+    setKeepGoing(true);
+    POINT mousePos;
+    while(getKeepGoing()) {
+        GetCursorPos(&mousePos);
+        mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, mousePos.x, mousePos.y, 0, 0);
+        Sleep(getInterval() * 1000);
+    }
+}
 
-        AutoClicker() {
-            keybind = "k";
-            interval = 0.5;
-        }
+void AutoClicker::stop() {
+    setKeepGoing(false);
+}
 
-        void start() {
-            setKeepGoing(true);
+void AutoClicker::setKeybind(char keybind) {
+    // validation logic
+    this->keybind = keybind;
+}
 
-            POINT mousePos;
-            while(getKeepGoing()) {
-                GetCursorPos(&mousePos);
+void AutoClicker::setInterval(double interval) {
+    // validation logic
+    this->interval = interval;
+}
 
-                mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, mousePos.x, mousePos.y, 0, 0);
+char AutoClicker::getKeybind() {
+    return keybind;
+}
 
-                Sleep(getInterval() * 1000);
-            }
-        }
+double AutoClicker::getInterval() {
+    return interval;
+}
 
-        void stop() {
-            setKeepGoing(false);
-        }
+void AutoClicker::setKeepGoing(bool keepGoing) {
+    this->keepGoing = keepGoing;
+}
 
-        void setKeybind(std::string keybind) {
-            // validation logic
-            this->keybind = keybind;
-        }
-
-        void setInterval(double interval) {
-            // validation logic
-            this->interval = interval;
-        }
-
-        std::string getKeybind() {
-            return keybind;
-        }
-
-        double getInterval() {
-            return interval;
-        }
-
-        void setKeepGoing(bool keepGoing) {
-            this->keepGoing = keepGoing;
-        }
-
-        bool getKeepGoing() {
-            return keepGoing;
-        }
-};
+bool AutoClicker::getKeepGoing() {
+    return keepGoing;
+}

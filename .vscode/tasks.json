@@ -8,8 +8,10 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "C:\\Z\\Projects\\AutoClicker\\AutoClicker.cpp",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-Wl,-subsystem,console"
             ],
             "options": {
                 "cwd": "${fileDirname}"
